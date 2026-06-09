@@ -29,7 +29,8 @@ public class BingoWebSocketHandler extends TextWebSocketHandler {
         String path = session.getUri().getPath();
         String playerName = path.substring(path.lastIndexOf('/') + 1);
         session.getAttributes().put("playerName", playerName);
- 
+        session.getAttributes().put("path", path);
+
         if (path.contains("/ws/lobby/")) {
             lobbyService.connect(session, playerName);
         } else if (path.contains("/ws/juego/")) {
@@ -74,8 +75,9 @@ public class BingoWebSocketHandler extends TextWebSocketHandler {
  
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        String path = session.getUri().getPath();
+        String path = (String) session.getAttributes().get("path");
         String playerName = (String) session.getAttributes().get("playerName");
+        if (path == null || playerName == null) return;
         if (path.contains("/ws/lobby/")) {
             lobbyService.disconnect(playerName);
         } else if (path.contains("/ws/juego/")) {
