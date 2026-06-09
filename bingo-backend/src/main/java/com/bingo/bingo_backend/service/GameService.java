@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class GameService {
 
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
-    private final Map<String, String> playerModes = new ConcurrentHashMap<>();
+    private final Map<String, String> playerModes = new HashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private volatile boolean gameActive = false;
     private List<Map<String, Object>> calledBalls = new ArrayList<>();
