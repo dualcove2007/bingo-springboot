@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo - Sala de Espera</title>
+    <style>
+        /* Reset de estilos básicos */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19; 
+            min-height: 100vh;
+            display: flex;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        /* --- BARRA LATERAL (SIDEBAR) --- */
+        .sidebar {
+            width: 240px;
+            background-color: #1a2238; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 30px 20px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding-left: 10px;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            list-style: none;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: #b5ff60; 
+        }
+
+        .nav-item.inactive {
+            color: #5d6b89;
+        }
+
+        .nav-item.inactive:hover {
+            color: #ffffff;
+            background-color: #232d4a;
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: #5d6b89;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            color: #ff6b6b;
+            background-color: #232d4a;
+        }
+
+        /* --- CONTENIDO PRINCIPAL --- */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #161d31;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid #232d4a;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #ffb800; /* Amarillo inicial de "Conectando..." */
+            border-radius: 50%;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffb800;
+            letter-spacing: 0.5px;
+        }
+
+        .lobby-card {
+            background-color: #161d31;
+            border: 1px solid #1f2842;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .lobby-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .lobby-description {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+            background: #0b0f19;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #1f2842;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .player-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .player-row .dot {
+            width: 6px;
+            height: 6px;
+            background-color: #b5ff60;
+            border-radius: 50%;
+        }
+
+        .btn-iniciar {
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            background-color: #b5ff60;
+            color: #0b0f19;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-iniciar:hover { background-color: #a2e650; }
+        .btn-iniciar:active { transform: scale(0.98); }
+        .btn-iniciar:disabled { background-color: #2b3554; color: #5d6b89; cursor: not-allowed; }
+        .hidden { display: none !important; }
+        .vote-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(5,7,12,0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 999;
+        }
+        .vote-card {
+            background-color: #1e2640;
+            border: 1px solid #2b3554;
+            border-radius: 16px;
+            width: 90%; max-width: 400px;
+            padding: 36px 30px;
+            text-align: center;
+        }
+        .vote-card h2 { color: #ffffff; font-size: 18px; margin-bottom: 12px; }
+        .vote-card p { color: #94a3b8; font-size: 14px; margin-bottom: 28px; line-height: 1.6; }
+        .vote-buttons { display: flex; gap: 12px; justify-content: center; }
+        .btn-si { padding: 12px 32px; background-color: #b5ff60; color: #0b0f19; font-size: 14px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+        .btn-si:hover { background-color: #a2e650; }
+        .btn-no { padding: 12px 32px; background-color: #2b3554; color: #ffffff; font-size: 14px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+        .btn-no:hover { background-color: #38456e; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <div class="logo">BINGO</div>
+            
+            <nav>
+                <ul class="nav-menu">
+                    <li>
+                        <a href="/menu" class="nav-item active">
+                            <span>🎮</span> Jugar en Línea
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/opciones" class="nav-item inactive">
+                            <span>⚙️</span> Opciones
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div id="logoutBtn" class="logout-btn">
+            <span>🚪</span> Cerrar Sesión
+        </div>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="status-container">
+            <div id="statusDot" class="status-dot"></div>
+            <h2 id="statusText" class="status-text">Conectando al servidor...</h2>
+        </div>
+        
+        <div class="lobby-card">
+            <h3 id="lobbyCount" class="lobby-title">Jugadores en la sala: 0</h3>
+            <p class="lobby-description">
+                La partida iniciará automáticamente cuando se complete el cupo de jugadores en la sala de espera.
+            </p>
+
+            <div class="players-list" id="playersList">
+                </div>
+            <button class="btn-iniciar hidden" id="btnIniciar">&#9889; Iniciar ahora</button>
+        </div>
+        
+        <div class="vote-overlay hidden" id="voteOverlay">
+            <div class="vote-card">
+                <h2>&#9889; Iniciar partida?</h2>
+                <p id="voteMessage">Un jugador quiere iniciar la partida. Deseas iniciar?</p>
+                <div class="vote-buttons">
+                    <button class="btn-si" id="btnSi">Si</button>
+                    <button class="btn-no" id="btnNo">No</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playerName = localStorage.getItem('player_name') || "Jugador_Anonimo";
+            const sanitizedName = playerName.trim().replace(/\s+/g, '_');
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = "/";
+            });
+
+            const loc = window.location;
+            const protocol = loc.protocol === "https:" ? "wss://" : "ws://";
+            const wsUri = protocol + loc.host + "/ws/lobby/" + sanitizedName;
+
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const lobbyCount = document.getElementById('lobbyCount');
+            const playersList = document.getElementById('playersList');
+            const btnIniciar = document.getElementById('btnIniciar');
+            const voteOverlay = document.getElementById('voteOverlay');
+            const voteMessage = document.getElementById('voteMessage');
+
+            let socket;
+            let pingInterval;
+            let reconnectAttempts = 0;
+
+            btnIniciar.addEventListener('click', () => {
+                if (!socket || socket.readyState !== WebSocket.OPEN) return;
+                btnIniciar.disabled = true;
+                btnIniciar.textContent = 'Esperando respuestas...';
+                socket.send(JSON.stringify({ tipo: 'solicitar_inicio' }));
+            });
+
+            document.getElementById('btnSi').addEventListener('click', () => {
+                voteOverlay.classList.add('hidden');
+                socket.send(JSON.stringify({ tipo: 'responder_inicio', acepta: true }));
+            });
+
+            document.getElementById('btnNo').addEventListener('click', () => {
+                voteOverlay.classList.add('hidden');
+                socket.send(JSON.stringify({ tipo: 'responder_inicio', acepta: false }));
+            });
+
+            function conectarWebSocket() {
+                if (socket && (socket.readyState === WebSocket.CONNECTING || socket.readyState === WebSocket.OPEN)) return;
+                try {
+                    socket = new WebSocket(wsUri);
+
+                    socket.onopen = () => {
+                        reconnectAttempts = 0;
+                        statusDot.style.backgroundColor = "#b5ff60";
+                        statusText.style.color = "#b5ff60";
+                        statusText.innerText = "Conectado a la sala";
+                        setTimeout(() => {
+                            if (socket.readyState === WebSocket.OPEN) socket.send("PING");
+                        }, 400);
+                        if (pingInterval) clearInterval(pingInterval);
+                        pingInterval = setInterval(() => {
+                            if (socket.readyState === WebSocket.OPEN) socket.send("PING");
+                        }, 20000);
+                    };
+
+                    socket.onmessage = (event) => {
+                        if (event.data === "PONG") return;
+                        try {
+                            const data = JSON.parse(event.data);
+
+                            if (data.tipo === "actualizacion_sala") {
+                                const listaHtml = data.jugadores.map(function(p) {
+                                    return '<div class="player-row"><span class="dot"></span><span>' + p.replace(/_/g, ' ') + '</span></div>';
+                                }).join('');
+                                playersList.innerHTML = listaHtml;
+                                lobbyCount.innerText = "Jugadores en la sala: " + data.total;
+
+                                if (data.puede_iniciar) {
+                                    btnIniciar.classList.remove('hidden');
+                                    btnIniciar.disabled = false;
+                                    btnIniciar.textContent = '⚡ Iniciar ahora';
+                                } else {
+                                    btnIniciar.classList.add('hidden');
+                                }
+                            }
+
+                            if (data.tipo === "pregunta_inicio") {
+                                voteMessage.textContent = data.mensaje;
+                                voteOverlay.classList.remove('hidden');
+                            }
+
+                            if (data.tipo === "inicio_cancelado") {
+                                voteOverlay.classList.add('hidden');
+                                btnIniciar.disabled = false;
+                                btnIniciar.textContent = '⚡ Iniciar ahora';
+                                alert(data.mensaje);
+                            }
+
+                            if (data.tipo === "aviso") {
+                                btnIniciar.disabled = false;
+                                btnIniciar.textContent = '⚡ Iniciar ahora';
+                                alert(data.mensaje);
+                            }
+
+                            if (data.action === "START_GAME") {
+                                if (pingInterval) clearInterval(pingInterval);
+                                window._redirectingToGame = true;
+                                window.location.href = "/juego";
+                            }
+                        } catch (e) {
+                            console.error("Error parseando mensaje:", e);
+                        }
+                    };
+
+                    socket.onclose = () => {
+                        if (pingInterval) clearInterval(pingInterval);
+                        if (window._redirectingToGame) return;
+                        statusDot.style.backgroundColor = "#ff6b6b";
+                        statusText.style.color = "#ff6b6b";
+                        statusText.innerText = "Reconectando...";
+                        const delay = reconnectAttempts < 3 ? 3000 : 8000;
+                        reconnectAttempts++;
+                        setTimeout(conectarWebSocket, delay);
+                    };
+
+                    socket.onerror = function() {};
+
+                } catch (err) {
+                    console.error("Error critico:", err);
+                }
+            }
+
+            conectarWebSocket();
+        });
+    </script>
+
+</body>
+</html>
